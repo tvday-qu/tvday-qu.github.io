@@ -346,11 +346,24 @@ function renderAdmin(){
     '<tr><td>' + (i+1) + '</td><td><b>' + esc(p.name) + '</b><div class="muted ltr">' + esc(p.code) + '</div></td><td>' + esc(p.type) + '</td>' +
     '<td class="ltr">' + esc(p.phone) + '</td><td class="ltr">' + esc(p.uni) + '</td><td class="muted">' + esc(p.reg) + '</td>' +
     '<td>' + (p.att ? '<span class="pill y">حاضر ' + esc(p.time) + '</span>' : '<span class="pill n">لم يحضر</span>') + '</td><td>' + esc(p.by) + '</td>' +
-    '<td>' + (p.att ? '' : '<button class="mini" data-c="' + esc(p.code) + '">تحضير</button>') + '</td></tr>'
+    '<td><div style="display:flex;gap:6px">' + (p.att ? '<button class="mini" style="background:#e5e7eb" data-u="' + esc(p.code) + '">إلغاء التحضير</button>' : '<button class="mini" data-c="' + esc(p.code) + '">تحضير</button>') +
+    '<button class="mini" style="background:#fee2e2;color:#b91c1c" data-d="' + esc(p.code) + '" data-n="' + esc(p.name) + '">حذف</button></div></td></tr>'
   ).join('') || '<tr><td colspan="9" class="center muted">لا يوجد</td></tr>';
 }
 $('aSearch').oninput = renderAdmin; $('aFilter').onchange = renderAdmin; $('bRefresh').onclick = loadAdmin;
 $('aBody').addEventListener('click', async e => {
+  const del = e.target.getAttribute('data-d'), un = e.target.getAttribute('data-u');
+  if (del) {
+    if (!confirm('متأكد تبي تحذف «' + e.target.getAttribute('data-n') + '»؟ ما يمديك ترجعه بعد الحذف.')) return;
+    e.target.disabled = true; e.target.textContent = '...';
+    try { await api({action:'delete', pass: PASS, code: del}); } catch(_) {}
+    return loadAdmin();
+  }
+  if (un) {
+    e.target.disabled = true; e.target.textContent = '...';
+    try { await api({action:'uncheck', pass: PASS, code: un}); } catch(_) {}
+    return loadAdmin();
+  }
   const c = e.target.getAttribute('data-c'); if (!c) return;
   e.target.disabled = true; e.target.textContent = '...';
   try { await api({action:'checkin', pass: PASS, code: c, staff: STAFF || 'إدارة الموقع'}); } catch(_) {}
